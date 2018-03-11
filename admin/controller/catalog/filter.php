@@ -1,26 +1,26 @@
 <?php
-class ControllerCatalogAttribute extends Controller {
+class ControllerCatalogFilter extends Controller {
 	private $error = array();
 
 	public function index() {
-		$this->load->language('catalog/attribute');
+		$this->load->language('catalog/filter');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
-		$this->load->model('catalog/attribute');
+		$this->load->model('catalog/filter');
 
 		$this->getList();
 	}
 
 	public function add() {
-		$this->load->language('catalog/attribute');
+		$this->load->language('catalog/filter');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
-		$this->load->model('catalog/attribute');
+		$this->load->model('catalog/filter');
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
-			$this->model_catalog_attribute->addAttribute($this->request->post);
+			$this->model_catalog_filter->addFilter($this->request->post);
 
 			$this->session->data['success'] = $this->language->get('text_success');
 
@@ -38,21 +38,21 @@ class ControllerCatalogAttribute extends Controller {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
-			$this->response->redirect($this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true));
+			$this->response->redirect($this->url->link('catalog/filter', 'user_token=' . $this->session->data['user_token'] . $url, true));
 		}
 
 		$this->getForm();
 	}
 
 	public function edit() {
-		$this->load->language('catalog/attribute');
+		$this->load->language('catalog/filter');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
-		$this->load->model('catalog/attribute');
+		$this->load->model('catalog/filter');
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
-			$this->model_catalog_attribute->editAttribute($this->request->get['attribute_id'], $this->request->post);
+			$this->model_catalog_filter->editFilter($this->request->get['filter_group_id'], $this->request->post);
 
 			$this->session->data['success'] = $this->language->get('text_success');
 
@@ -70,22 +70,22 @@ class ControllerCatalogAttribute extends Controller {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
-			$this->response->redirect($this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true));
+			$this->response->redirect($this->url->link('catalog/filter', 'user_token=' . $this->session->data['user_token'] . $url, true));
 		}
 
 		$this->getForm();
 	}
 
 	public function delete() {
-		$this->load->language('catalog/attribute');
+		$this->load->language('catalog/filter');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
-		$this->load->model('catalog/attribute');
+		$this->load->model('catalog/filter');
 
 		if (isset($this->request->post['selected']) && $this->validateDelete()) {
-			foreach ($this->request->post['selected'] as $attribute_id) {
-				$this->model_catalog_attribute->deleteAttribute($attribute_id);
+			foreach ($this->request->post['selected'] as $filter_group_id) {
+				$this->model_catalog_filter->deleteFilter($filter_group_id);
 			}
 
 			$this->session->data['success'] = $this->language->get('text_success');
@@ -104,7 +104,7 @@ class ControllerCatalogAttribute extends Controller {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
-			$this->response->redirect($this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true));
+			$this->response->redirect($this->url->link('catalog/filter', 'user_token=' . $this->session->data['user_token'] . $url, true));
 		}
 
 		$this->getList();
@@ -114,7 +114,7 @@ class ControllerCatalogAttribute extends Controller {
 		if (isset($this->request->get['sort'])) {
 			$sort = $this->request->get['sort'];
 		} else {
-			$sort = 'ad.name';
+			$sort = 'fgd.name';
 		}
 
 		if (isset($this->request->get['order'])) {
@@ -152,13 +152,13 @@ class ControllerCatalogAttribute extends Controller {
 
 		$data['breadcrumbs'][] = array(
 			'text' => $this->language->get('heading_title'),
-			'href' => $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true)
+			'href' => $this->url->link('catalog/filter', 'user_token=' . $this->session->data['user_token'] . $url, true)
 		);
 
-		$data['add'] = $this->url->link('catalog/attribute/add', 'user_token=' . $this->session->data['user_token'] . $url, true);
-		$data['delete'] = $this->url->link('catalog/attribute/delete', 'user_token=' . $this->session->data['user_token'] . $url, true);
+		$data['add'] = $this->url->link('catalog/filter/add', 'user_token=' . $this->session->data['user_token'] . $url, true);
+		$data['delete'] = $this->url->link('catalog/filter/delete', 'user_token=' . $this->session->data['user_token'] . $url, true);
 
-		$data['attributes'] = array();
+		$data['filters'] = array();
 
 		$filter_data = array(
 			'sort'  => $sort,
@@ -167,20 +167,19 @@ class ControllerCatalogAttribute extends Controller {
 			'limit' => $this->config->get('config_limit_admin')
 		);
 
-		$attribute_total = $this->model_catalog_attribute->getTotalAttributes();
+		$filter_total = $this->model_catalog_filter->getTotalFilterGroups();
 
-		$results = $this->model_catalog_attribute->getAttributes($filter_data);
+		$results = $this->model_catalog_filter->getFilterGroups($filter_data);
 
 		foreach ($results as $result) {
-			$data['attributes'][] = array(
-				'attribute_id'    => $result['attribute_id'],
+			$data['filters'][] = array(
+				'filter_group_id' => $result['filter_group_id'],
 				'name'            => $result['name'],
-				'attribute_group' => $result['attribute_group'],
 				'sort_order'      => $result['sort_order'],
-				'edit'            => $this->url->link('catalog/attribute/edit', 'user_token=' . $this->session->data['user_token'] . '&attribute_id=' . $result['attribute_id'] . $url, true)
+				'edit'            => $this->url->link('catalog/filter/edit', 'user_token=' . $this->session->data['user_token'] . '&filter_group_id=' . $result['filter_group_id'] . $url, true)
 			);
 		}
-		
+
 		if (isset($this->error['warning'])) {
 			$data['error_warning'] = $this->error['warning'];
 		} else {
@@ -213,9 +212,8 @@ class ControllerCatalogAttribute extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
-		$data['sort_name'] = $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . '&sort=ad.name' . $url, true);
-		$data['sort_attribute_group'] = $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . '&sort=attribute_group' . $url, true);
-		$data['sort_sort_order'] = $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . '&sort=a.sort_order' . $url, true);
+		$data['sort_name'] = $this->url->link('catalog/filter', 'user_token=' . $this->session->data['user_token'] . '&sort=fgd.name' . $url, true);
+		$data['sort_sort_order'] = $this->url->link('catalog/filter', 'user_token=' . $this->session->data['user_token'] . '&sort=fg.sort_order' . $url, true);
 
 		$url = '';
 
@@ -228,27 +226,27 @@ class ControllerCatalogAttribute extends Controller {
 		}
 
 		$pagination = new Pagination();
-		$pagination->total = $attribute_total;
+		$pagination->total = $filter_total;
 		$pagination->page = $page;
 		$pagination->limit = $this->config->get('config_limit_admin');
-		$pagination->url = $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}', true);
+		$pagination->url = $this->url->link('catalog/filter', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}', true);
 
 		$data['pagination'] = $pagination->render();
 
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($attribute_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($attribute_total - $this->config->get('config_limit_admin'))) ? $attribute_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $attribute_total, ceil($attribute_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($filter_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($filter_total - $this->config->get('config_limit_admin'))) ? $filter_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $filter_total, ceil($filter_total / $this->config->get('config_limit_admin')));
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
-		
+
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
 
-		$this->response->setOutput($this->load->view('catalog/attribute_list', $data));
+		$this->response->setOutput($this->load->view('catalog/filter_list', $data));
 	}
 
 	protected function getForm() {
-		$data['text_form'] = !isset($this->request->get['attribute_id']) ? $this->language->get('text_add') : $this->language->get('text_edit');
+		$data['text_form'] = !isset($this->request->get['filter_id']) ? $this->language->get('text_add') : $this->language->get('text_edit');
 
 		if (isset($this->error['warning'])) {
 			$data['error_warning'] = $this->error['warning'];
@@ -256,16 +254,16 @@ class ControllerCatalogAttribute extends Controller {
 			$data['error_warning'] = '';
 		}
 
-		if (isset($this->error['name'])) {
-			$data['error_name'] = $this->error['name'];
+		if (isset($this->error['group'])) {
+			$data['error_group'] = $this->error['group'];
 		} else {
-			$data['error_name'] = array();
+			$data['error_group'] = array();
 		}
 
-		if (isset($this->error['attribute_group'])) {
-			$data['error_attribute_group'] = $this->error['attribute_group'];
+		if (isset($this->error['filter'])) {
+			$data['error_filter'] = $this->error['filter'];
 		} else {
-			$data['error_attribute_group'] = '';
+			$data['error_filter'] = array();
 		}
 
 		$url = '';
@@ -291,72 +289,76 @@ class ControllerCatalogAttribute extends Controller {
 
 		$data['breadcrumbs'][] = array(
 			'text' => $this->language->get('heading_title'),
-			'href' => $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true)
+			'href' => $this->url->link('catalog/filter', 'user_token=' . $this->session->data['user_token'] . $url, true)
 		);
 
-		if (!isset($this->request->get['attribute_id'])) {
-			$data['action'] = $this->url->link('catalog/attribute/add', 'user_token=' . $this->session->data['user_token'] . $url, true);
+		if (!isset($this->request->get['filter_group_id'])) {
+			$data['action'] = $this->url->link('catalog/filter/add', 'user_token=' . $this->session->data['user_token'] . $url, true);
 		} else {
-			$data['action'] = $this->url->link('catalog/attribute/edit', 'user_token=' . $this->session->data['user_token'] . '&attribute_id=' . $this->request->get['attribute_id'] . $url, true);
+			$data['action'] = $this->url->link('catalog/filter/edit', 'user_token=' . $this->session->data['user_token'] . '&filter_group_id=' . $this->request->get['filter_group_id'] . $url, true);
 		}
 
-		$data['cancel'] = $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true);
+		$data['cancel'] = $this->url->link('catalog/filter', 'user_token=' . $this->session->data['user_token'] . $url, true);
 
-		if (isset($this->request->get['attribute_id']) && ($this->request->server['REQUEST_METHOD'] != 'POST')) {
-			$attribute_info = $this->model_catalog_attribute->getAttribute($this->request->get['attribute_id']);
+		if (isset($this->request->get['filter_group_id']) && ($this->request->server['REQUEST_METHOD'] != 'POST')) {
+			$filter_group_info = $this->model_catalog_filter->getFilterGroup($this->request->get['filter_group_id']);
 		}
+
+		$data['user_token'] = $this->session->data['user_token'];
 
 		$this->load->model('localisation/language');
 
 		$data['languages'] = $this->model_localisation_language->getLanguages();
 
-		if (isset($this->request->post['attribute_description'])) {
-			$data['attribute_description'] = $this->request->post['attribute_description'];
-		} elseif (isset($this->request->get['attribute_id'])) {
-			$data['attribute_description'] = $this->model_catalog_attribute->getAttributeDescriptions($this->request->get['attribute_id']);
+		if (isset($this->request->post['filter_group_description'])) {
+			$data['filter_group_description'] = $this->request->post['filter_group_description'];
+		} elseif (isset($this->request->get['filter_group_id'])) {
+			$data['filter_group_description'] = $this->model_catalog_filter->getFilterGroupDescriptions($this->request->get['filter_group_id']);
 		} else {
-			$data['attribute_description'] = array();
+			$data['filter_group_description'] = array();
 		}
-
-		if (isset($this->request->post['attribute_group_id'])) {
-			$data['attribute_group_id'] = $this->request->post['attribute_group_id'];
-		} elseif (!empty($attribute_info)) {
-			$data['attribute_group_id'] = $attribute_info['attribute_group_id'];
-		} else {
-			$data['attribute_group_id'] = '';
-		}
-
-		$this->load->model('catalog/attribute_group');
-
-		$data['attribute_groups'] = $this->model_catalog_attribute_group->getAttributeGroups();
 
 		if (isset($this->request->post['sort_order'])) {
 			$data['sort_order'] = $this->request->post['sort_order'];
-		} elseif (!empty($attribute_info)) {
-			$data['sort_order'] = $attribute_info['sort_order'];
+		} elseif (!empty($filter_group_info)) {
+			$data['sort_order'] = $filter_group_info['sort_order'];
 		} else {
 			$data['sort_order'] = '';
+		}
+
+		if (isset($this->request->post['filter'])) {
+			$data['filters'] = $this->request->post['filter'];
+		} elseif (isset($this->request->get['filter_group_id'])) {
+			$data['filters'] = $this->model_catalog_filter->getFilterDescriptions($this->request->get['filter_group_id']);
+		} else {
+			$data['filters'] = array();
 		}
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
 
-		$this->response->setOutput($this->load->view('catalog/attribute_form', $data));
+		$this->response->setOutput($this->load->view('catalog/filter_form', $data));
 	}
 
 	protected function validateForm() {
-		if (!$this->user->hasPermission('modify', 'catalog/attribute')) {
+		if (!$this->user->hasPermission('modify', 'catalog/filter')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
-		if (!$this->request->post['attribute_group_id']) {
-			$this->error['attribute_group'] = $this->language->get('error_attribute_group');
+		foreach ($this->request->post['filter_group_description'] as $language_id => $value) {
+			if ((utf8_strlen($value['name']) < 1) || (utf8_strlen($value['name']) > 64)) {
+				$this->error['group'][$language_id] = $this->language->get('error_group');
+			}
 		}
 
-		foreach ($this->request->post['attribute_description'] as $language_id => $value) {
-			if ((utf8_strlen($value['name']) < 1) || (utf8_strlen($value['name']) > 64)) {
-				$this->error['name'][$language_id] = $this->language->get('error_name');
+		if (isset($this->request->post['filter'])) {
+			foreach ($this->request->post['filter'] as $filter_id => $filter) {
+				foreach ($filter['filter_description'] as $language_id => $filter_description) {
+					if ((utf8_strlen($filter_description['name']) < 1) || (utf8_strlen($filter_description['name']) > 64)) {
+						$this->error['filter'][$filter_id][$language_id] = $this->language->get('error_name');
+					}
+				}
 			}
 		}
 
@@ -364,18 +366,8 @@ class ControllerCatalogAttribute extends Controller {
 	}
 
 	protected function validateDelete() {
-		if (!$this->user->hasPermission('modify', 'catalog/attribute')) {
+		if (!$this->user->hasPermission('modify', 'catalog/filter')) {
 			$this->error['warning'] = $this->language->get('error_permission');
-		}
-
-		$this->load->model('catalog/product');
-
-		foreach ($this->request->post['selected'] as $attribute_id) {
-			$product_total = $this->model_catalog_product->getTotalProductsByAttributeId($attribute_id);
-
-			if ($product_total) {
-				$this->error['warning'] = sprintf($this->language->get('error_product'), $product_total);
-			}
 		}
 
 		return !$this->error;
@@ -385,7 +377,7 @@ class ControllerCatalogAttribute extends Controller {
 		$json = array();
 
 		if (isset($this->request->get['filter_name'])) {
-			$this->load->model('catalog/attribute');
+			$this->load->model('catalog/filter');
 
 			$filter_data = array(
 				'filter_name' => $this->request->get['filter_name'],
@@ -393,13 +385,12 @@ class ControllerCatalogAttribute extends Controller {
 				'limit'       => 5
 			);
 
-			$results = $this->model_catalog_attribute->getAttributes($filter_data);
+			$filters = $this->model_catalog_filter->getFilters($filter_data);
 
-			foreach ($results as $result) {
+			foreach ($filters as $filter) {
 				$json[] = array(
-					'attribute_id'    => $result['attribute_id'],
-					'name'            => strip_tags(html_entity_decode($result['name'], ENT_QUOTES, 'UTF-8')),
-					'attribute_group' => $result['attribute_group']
+					'filter_id' => $filter['filter_id'],
+					'name'      => strip_tags(html_entity_decode($filter['group'] . ' &gt; ' . $filter['name'], ENT_QUOTES, 'UTF-8'))
 				);
 			}
 		}
