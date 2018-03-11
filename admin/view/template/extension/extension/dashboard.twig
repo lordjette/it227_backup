@@ -15,7 +15,9 @@
       <thead>
         <tr>
           <td class="text-left">{{ column_name }}</td>
+          <td class="text-right">{{ column_width }}</td>
           <td class="text-left">{{ column_status }}</td>
+          <td class="text-right">{{ column_sort_order }}</td>
           <td class="text-right">{{ column_action }}</td>
         </tr>
       </thead>
@@ -23,22 +25,21 @@
         {% if extensions %}
         {% for extension in extensions %}
         <tr>
-          <td class="text-left" colspan="2"><b>{{ extension.name }}</b></td>
-          <td class="text-right">{% if not extension.installed %}
+          <td class="text-left">{{ extension.name }}</td>
+          <td class="text-right">{{ extension.width }}</td>
+          <td class="text-left">{{ extension.status }}</td>
+          <td class="text-right">{{ extension.sort_order }}</td>
+          <td class="text-right">{% if extension.installed %}
+            <a href="{{ extension.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
+            {% else %}
+            <button type="button" class="btn btn-primary" disabled="disabled"><i class="fa fa-pencil"></i></button>
+            {% endif %}
+            {% if not extension.installed %}
             <a href="{{ extension.install }}" data-toggle="tooltip" title="{{ button_install }}" class="btn btn-success"><i class="fa fa-plus-circle"></i></a>
             {% else %}
             <a href="{{ extension.uninstall }}" data-toggle="tooltip" title="{{ button_uninstall }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></a>
             {% endif %}</td>
         </tr>
-        {% if extension.installed %}
-        {% for store in extension.store %}
-        <tr>
-          <td class="text-left">&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;{{ store.name }}</td>
-          <td class="text-left">{{ store.status }}</td>
-          <td class="text-right"><a href="{{ store.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a></td>
-        </tr>
-        {% endfor %}
-        {% endif %}
         {% endfor %}
         {% else %}
         <tr>
